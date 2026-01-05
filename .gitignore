@@ -24,3 +24,7 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 *.glb
+
+#AI
+.claude
+CLAUDE.md
