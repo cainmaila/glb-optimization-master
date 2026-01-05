@@ -132,7 +132,7 @@
 
 ## 🔮 未來展望 (Roadmap)
 
-- [ ] 支援 KTX2 紋理壓縮 (GPU VRAM 優化)
+- [ ] 支援 KTX2 紋理壓縮 (GPU VRAM 優化) - _需安裝 toktx_
 - [ ] 支援批次處理 (Batch Processing)
 - [ ] 整合 AI 自動減面算法
 - [ ] 雲端儲存與分享連結生成

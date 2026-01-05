@@ -85,13 +85,7 @@ export async function optimizeGLB(buffer: Uint8Array, config: OptimizationConfig
       textureOptions.targetFormat = 'webp';
       textureOptions.formats = /.*/; // Convert common formats to WebP
     } else {
-      // If staying original but resizing, we generally default to a safe efficient format like JPEG 
-      // or rely on the tool's behavior. For this simple implementation, if resizing is requested
-      // without format change, we'll try to keep it simple. 
-      // Note: gltf-transform textureCompress usually requires a targetFormat or defaults to something.
-      // We will perform a specific resize-only pass if needed, or default to JPEG for compression gain.
-      // For now, let's default to jpeg if resizing is active and no specific format chosen,
-      // as it offers better compression than PNG for general 3D assets.
+      // Default to jpeg if resizing is active and no specific format chosen
       textureOptions.targetFormat = 'jpeg';
       textureOptions.formats = /image\/(jpeg|png)/;
     }
