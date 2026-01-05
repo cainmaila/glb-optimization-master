@@ -1,5 +1,6 @@
 <script lang="ts">
   import { selectedFile, optimizedUrl } from '$lib/stores';
+  import { settings } from '$lib/settings';
 
   let isProcessing = false;
   let progress = '';
@@ -13,6 +14,7 @@
     try {
       const formData = new FormData();
       formData.append('file', $selectedFile);
+      formData.append('config', JSON.stringify($settings));
 
       const response = await fetch('/api/optimize', {
         method: 'POST',

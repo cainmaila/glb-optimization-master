@@ -2,6 +2,7 @@
   import Upload from '$lib/components/Upload.svelte';
   import Preview from '$lib/components/Preview.svelte';
   import DownloadButton from '$lib/components/DownloadButton.svelte';
+  import SettingsPanel from '$lib/components/SettingsPanel.svelte';
   import { glbUrl, optimizedUrl } from '$lib/stores';
 </script>
 
@@ -31,6 +32,7 @@
     font-size: 2.5rem;
     background: linear-gradient(135deg, #fff 0%, #aaa 100%);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 </style>
@@ -41,10 +43,8 @@
   
   {#if $glbUrl}
     <Preview glbUrl={$glbUrl} />
-  {/if}
-
-  {#if $glbUrl}
-     <DownloadButton />
+    <SettingsPanel />
+    <DownloadButton />
   {/if}
 
   {#if $optimizedUrl}
