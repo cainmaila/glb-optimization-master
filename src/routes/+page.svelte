@@ -1,54 +1,88 @@
 <script lang="ts">
-  import Upload from '$lib/components/Upload.svelte';
-  import Preview from '$lib/components/Preview.svelte';
-  import DownloadButton from '$lib/components/DownloadButton.svelte';
-  import SettingsPanel from '$lib/components/SettingsPanel.svelte';
-  import { glbUrl, optimizedUrl } from '$lib/stores';
+  import FeatureCard from '$lib/components/FeatureCard.svelte';
+
+  const features = [
+    {
+      title: 'GLB 優化大師',
+      description: '使用先進的 glTF 變換壓縮和優化 3D 模型。支援 Draco、Meshopt、紋理壓縮等技術，最高可減少 80% 檔案體積。',
+      href: '/glb-optimizer',
+      icon: '🎨',
+      status: 'ready' as const,
+      iconBgColor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+    },
+    {
+      title: '結構解析大師',
+      description: '深入分析 GLB 檔案結構。檢查網格、材質、紋理，並獲得優化建議。',
+      href: '/structure-analyzer',
+      icon: '🔍',
+      status: 'coming-soon' as const,
+      iconBgColor: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
+    }
+  ];
 </script>
 
 <style>
-  .container {
-    max-width: 960px;
+  .index-container {
+    max-width: 1200px;
     margin: 0 auto;
-    padding: 2rem;
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-    background: rgba(255, 255, 255, 0.02);
-    backdrop-filter: blur(20px);
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-    color: #fff;
-    font-family: 'Inter', system-ui, sans-serif;
+    padding: 3rem 2rem;
+    min-height: 100vh;
   }
-  h1, h2 {
+
+  .hero {
     text-align: center;
+    margin-bottom: 4rem;
+  }
+
+  h1 {
+    font-size: 3rem;
     font-weight: 200;
     letter-spacing: 0.05em;
-    margin: 0;
-  }
-  h1 {
-    font-size: 2.5rem;
+    margin: 0 0 1rem 0;
     background: linear-gradient(135deg, #fff 0%, #aaa 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
   }
+
+  .subtitle {
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 300;
+    margin: 0;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+  }
+
+  @media (max-width: 768px) {
+    h1 {
+      font-size: 2rem;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+    }
+
+    .index-container {
+      padding: 2rem 1rem;
+    }
+  }
 </style>
 
-<div class="container">
-  <h1>GLB Model Optimizer</h1>
-  <Upload />
-  
-  {#if $glbUrl}
-    <Preview glbUrl={$glbUrl} />
-    <SettingsPanel />
-    <DownloadButton />
-  {/if}
+<div class="index-container">
+  <header class="hero">
+    <h1>GLB Optimization Platform</h1>
+    <p class="subtitle">Professional tools for 3D web optimization</p>
+  </header>
 
-  {#if $optimizedUrl}
-    <h2>Optimized Result</h2>
-    <Preview glbUrl={$optimizedUrl} />
-  {/if}
+  <div class="features-grid">
+    {#each features as feature}
+      <FeatureCard {...feature} />
+    {/each}
+  </div>
 </div>
