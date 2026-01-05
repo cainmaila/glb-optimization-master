@@ -20,6 +20,19 @@
     }
   }
 
+  // Mutually exclusive logic
+  function toggleDraco() {
+    if ($settings.draco) {
+      $settings.meshopt = false;
+    }
+  }
+
+  function toggleMeshopt() {
+    if ($settings.meshopt) {
+      $settings.draco = false;
+    }
+  }
+
   const tips = {
     draco: {
       title: "Draco Compression",
@@ -329,6 +342,30 @@
     color: #00c6fb;
     border-color: #00c6fb;
   }
+
+  .comparison-hint {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 0.5rem 0.8rem;
+    border-radius: 6px;
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    line-height: 1.3;
+  }
+
+  .hint-item strong {
+    color: #cbd5e1;
+    font-weight: 600;
+  }
+
+  .hint-divider {
+    color: rgba(255, 255, 255, 0.1);
+  }
 </style>
 
 <div class="settings-panel">
@@ -358,6 +395,12 @@
       <div class="section">
         <h3>Geometry</h3>
         
+        <div class="comparison-hint">
+          <span class="hint-item"><strong>Draco</strong>: 體積最小 (適合頻寬受限)</span>
+          <span class="hint-divider">|</span>
+          <span class="hint-item"><strong>Meshopt</strong>: 載入最快 (適合即時解碼)</span>
+        </div>
+
         <div class="control">
           <div class="label-group">
             <label for="draco">Draco Compression</label>
@@ -372,7 +415,7 @@
               </div>
             </div>
           </div>
-          <input id="draco" type="checkbox" bind:checked={$settings.draco} />
+          <input id="draco" type="checkbox" bind:checked={$settings.draco} on:change={toggleDraco} />
         </div>
 
         <div class="control">
@@ -389,7 +432,7 @@
               </div>
             </div>
           </div>
-          <input id="meshopt" type="checkbox" bind:checked={$settings.meshopt} />
+          <input id="meshopt" type="checkbox" bind:checked={$settings.meshopt} on:change={toggleMeshopt} />
         </div>
 
         <div class="control">
