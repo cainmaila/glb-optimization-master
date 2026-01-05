@@ -12,10 +12,10 @@
     },
     {
       title: '結構解析大師',
-      description: '深入分析 GLB 檔案結構。檢查網格、材質、紋理，並獲得優化建議。',
+      description: '深入分析 GLB 檔案結構。互動式 3D 檢視器與樹狀結構瀏覽，支援節點選取與相機動畫。',
       href: '/structure-analyzer',
       icon: '🔍',
-      status: 'coming-soon' as const,
+      status: 'ready' as const,
       iconBgColor: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
     }
   ];

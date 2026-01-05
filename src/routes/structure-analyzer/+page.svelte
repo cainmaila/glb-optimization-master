@@ -1,25 +1,49 @@
 <script lang="ts">
   import { ArrowLeft } from 'lucide-svelte';
+  import UploadZone from './components/UploadZone.svelte';
+  import TreeMenu from './components/TreeMenu.svelte';
+  import StructureViewer from './components/StructureViewer.svelte';
+  import { structureStore } from './stores/structureStore.svelte';
+
+  const hasModel = $derived(!!structureStore.model);
 </script>
 
+<div class="page-container">
+  <!-- 返回連結 -->
+  <a href="/" class="back-link">
+    <ArrowLeft size={16} /> Back to Home
+  </a>
+
+  <h1>結構解析大師</h1>
+
+  {#if !hasModel}
+    <!-- 上傳區域 -->
+    <div class="upload-container">
+      <UploadZone />
+    </div>
+  {:else}
+    <!-- Viewer 介面 -->
+    <div class="viewer-layout">
+      <TreeMenu />
+      <StructureViewer />
+    </div>
+  {/if}
+</div>
+
 <style>
-  .container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 3rem 2rem;
-    color: #e2e8f0;
-    font-family: 'Inter', system-ui, sans-serif;
-    line-height: 1.6;
+  .page-container {
+    min-height: 100vh;
+    padding: 2rem;
+    color: #fff;
   }
 
   .back-link {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    color: #94a3b8;
+    color: rgba(255, 255, 255, 0.7);
     text-decoration: none;
-    font-size: 0.9rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     transition: color 0.2s;
   }
 
@@ -28,73 +52,26 @@
   }
 
   h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
+    font-size: 2rem;
+    font-weight: 200;
+    margin-bottom: 2rem;
     background: linear-gradient(135deg, #fff 0%, #f093fb 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 
-  .subtitle {
-    font-size: 1.2rem;
-    color: rgba(255, 255, 255, 0.6);
-    margin-bottom: 3rem;
+  .upload-container {
+    max-width: 600px;
+    margin: 4rem auto;
   }
 
-  .card {
-    background: rgba(30, 41, 59, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+  .viewer-layout {
+    display: flex;
+    height: calc(100vh - 12rem);
+    background: rgba(255, 255, 255, 0.02);
     border-radius: 12px;
-    padding: 2rem;
-    margin: 2rem 0;
-  }
-
-  h2 {
-    font-size: 1.5rem;
-    color: #00c6fb;
-    margin-bottom: 1rem;
-  }
-
-  ul {
-    padding-left: 1.5rem;
-    margin-bottom: 1.5rem;
-  }
-
-  li {
-    margin-bottom: 0.75rem;
-    color: #cbd5e1;
-  }
-
-  p {
-    color: #cbd5e1;
-    margin-bottom: 1rem;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
 </style>
-
-<div class="container">
-  <a href="/" class="back-link">
-    <ArrowLeft size={16} /> Back to Home
-  </a>
-
-  <h1>結構解析大師</h1>
-  <p class="subtitle">Structure Analyzer - Coming Soon</p>
-
-  <div class="card">
-    <h2>即將推出的功能</h2>
-    <p>結構解析大師將為您的 GLB 檔案提供深度洞察：</p>
-    <ul>
-      <li>詳細的網格和幾何分析</li>
-      <li>材質和紋理檢查</li>
-      <li>節點層級可視化</li>
-      <li>性能優化建議</li>
-      <li>資產優化方案</li>
-    </ul>
-  </div>
-
-  <div class="card">
-    <h2>敬請期待</h2>
-    <p>此功能正在積極開發中。請持續關注更新！</p>
-  </div>
-</div>
