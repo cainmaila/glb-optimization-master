@@ -23,6 +23,7 @@ const defaultConfig: OptimizationConfig = {
   prune: false,
   dedup: false,
   instance: false,
+  join: true,
 };
 
 describe('gltfTransform', () => {

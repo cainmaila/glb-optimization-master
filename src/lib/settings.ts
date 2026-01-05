@@ -9,6 +9,7 @@ export type OptimizationConfig = {
   prune: boolean;
   dedup: boolean;
   instance: boolean;
+  join: boolean;
 };
 
 export const defaultSettings: OptimizationConfig = {
@@ -20,6 +21,7 @@ export const defaultSettings: OptimizationConfig = {
   prune: true,
   dedup: true,
   instance: false, // Disabled by default: can cause displacement on models not designed for instancing
+  join: true,
 };
 
 export const settings = writable<OptimizationConfig>({ ...defaultSettings });

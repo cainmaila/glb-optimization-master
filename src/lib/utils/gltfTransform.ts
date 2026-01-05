@@ -38,7 +38,7 @@ export async function optimizeGLB(buffer: Uint8Array, config: OptimizationConfig
   
   // Geometry
   if (config.instance) transforms.push(instance());
-  transforms.push(join()); // General optimization, usually safe to keep
+  if (config.join) transforms.push(join()); // Conditionally join meshes
   transforms.push(resample());
   
   if (config.quantize) {

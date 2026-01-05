@@ -69,6 +69,11 @@
       pros: "合併內容完全相同的 Accessor 或貼圖，減少冗餘。",
       cons: "無副作用。",
     },
+    join: {
+      title: "Join Meshes (合併網格)",
+      pros: "將多個物件合併為單一網格，大幅減少 Draw Calls。",
+      cons: "會破壞原始物件層級結構（如：無法再對個別零件做動畫）。",
+    },
     instance: {
       title: "GPU Instancing",
       pros: "讓重複的網格共用幾何數據，極大提升渲染效能 (Draw Calls)。",
@@ -534,6 +539,23 @@
             </div>
           </div>
           <input id="dedup" type="checkbox" bind:checked={$settings.dedup} />
+        </div>
+
+        <div class="control">
+          <div class="label-group">
+            <label for="join">Join Meshes</label>
+             <div class="tooltip-icon">
+              <Info size={14} />
+              <div class="tooltip-content">
+                <span class="tip-title">{tips.join.title}</span>
+                <span class="tip-label">好處 Benefit</span>
+                <span class="tip-row">{tips.join.pros}</span>
+                <span class="tip-label">影響 Impact</span>
+                <span class="tip-row">{tips.join.cons}</span>
+              </div>
+            </div>
+          </div>
+          <input id="join" type="checkbox" bind:checked={$settings.join} />
         </div>
 
         <div class="control">
