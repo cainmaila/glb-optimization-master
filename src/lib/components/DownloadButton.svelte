@@ -1,15 +1,18 @@
 <script lang="ts">
   import { selectedFile, optimizedUrl } from '$lib/stores';
   import { settings } from '$lib/settings';
+  import ComparisonReport from './ComparisonReport.svelte';
 
   let isProcessing = false;
   let progress = '';
+  let reports: { original: any; optimized: any } | null = null;
 
   async function handleOptimize() {
     if (!$selectedFile) return;
 
     isProcessing = true;
     progress = 'Uploading & Optimizing...';
+    reports = null; // Reset reports
 
     try {
       const formData = new FormData();
@@ -25,9 +28,22 @@
         throw new Error('Optimization failed');
       }
 
-      const blob = await response.blob();
+      // Handle JSON response with comparison data
+      const data = await response.json();
+      const { file, originalReport, optimizedReport } = data;
+
+      // Decode Base64 to Blob
+      const byteCharacters = atob(file);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'model/gltf-binary' });
+
       const url = URL.createObjectURL(blob);
       optimizedUrl.set(url);
+      reports = { original: originalReport, optimized: optimizedReport };
       progress = 'Done!';
     } catch (error) {
       console.error(error);
@@ -49,6 +65,13 @@
 </script>
 
 <style>
+  .container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+  }
+
   .controls {
     display: flex;
     gap: 1rem;
@@ -98,26 +121,36 @@
   .status {
     color: rgba(255, 255, 255, 0.7);
     font-size: 0.9rem;
-    margin-left: 1rem;
+    text-align: center;
   }
 </style>
 
-<div class="controls">
-  <button 
-    class="btn-optimize" 
-    on:click={handleOptimize} 
-    disabled={isProcessing}
-  >
-    {isProcessing ? 'Processing...' : 'Start Optimization'}
-  </button>
+<div class="container">
+  
+  <div class="controls optimize-section">
+    <button 
+      class="btn-optimize" 
+      on:click={handleOptimize} 
+      disabled={isProcessing}
+    >
+      {isProcessing ? 'Processing... (High CPU)' : 'Optimize & Download'}
+    </button>
+  </div>
+
+  {#if progress && !reports}
+    <div class="status">{progress}</div>
+  {/if}
+  
+  {#if reports}
+    <ComparisonReport original={reports.original} optimized={reports.optimized} />
+  {/if}
 
   {#if $optimizedUrl}
-    <button class="btn-download" on:click={handleDownload}>
-      Download Optimized
-    </button>
+    <div class="controls download-section">
+      <button class="btn-download" on:click={handleDownload}>
+        Download .GLB
+      </button>
+    </div>
   {/if}
 
-  {#if progress}
-    <span class="status">{progress}</span>
-  {/if}
 </div>

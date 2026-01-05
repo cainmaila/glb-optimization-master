@@ -20,15 +20,21 @@ export const POST: RequestHandler = async ({ request }) => {
     console.log(`Received file: ${file.name}, size: ${buffer.length} bytes`);
     console.log(`Config:`, config);
 
-    const optimizedBuffer = await optimizeGLB(buffer, config);
+    const { buffer: optimizedBuffer, originalReport, optimizedReport } = await optimizeGLB(buffer, config);
 
     console.log(`Optimized size: ${optimizedBuffer.length} bytes`);
 
-    return new Response(optimizedBuffer as BodyInit, {
+    // Convert to Base64
+    const base64File = Buffer.from(optimizedBuffer).toString('base64');
+
+    return new Response(JSON.stringify({
+      file: base64File,
+      originalReport,
+      optimizedReport
+    }), {
       status: 200,
       headers: {
-        'Content-Type': 'model/gltf-binary',
-        'Content-Disposition': `attachment; filename="optimized_${file.name}"`,
+        'Content-Type': 'application/json',
       },
     });
   } catch (error) {

@@ -29,15 +29,17 @@ const defaultConfig: OptimizationConfig = {
 describe('gltfTransform', () => {
   it('should process a valid GLB file without errors', async () => {
     const inputBuffer = await createMinimalGLB();
-    const result = await optimizeGLB(inputBuffer, defaultConfig);
+    const { buffer: result, originalReport, optimizedReport } = await optimizeGLB(inputBuffer, defaultConfig);
     expect(result).toBeDefined();
     expect(result.length).toBeGreaterThan(0);
+    expect(originalReport).toBeDefined();
+    expect(optimizedReport).toBeDefined();
   });
 
   it('should apply Draco compression when enabled', async () => {
     const inputBuffer = await createMinimalGLB();
     const config = { ...defaultConfig, draco: true };
-    const result = await optimizeGLB(inputBuffer, config);
+    const { buffer: result } = await optimizeGLB(inputBuffer, config);
     
     // We can check if KHR_draco_mesh_compression is present in extensions used
     const io = new NodeIO();
