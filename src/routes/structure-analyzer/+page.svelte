@@ -18,7 +18,7 @@
 				isLoading={structureStore.isLoading}
 				loadProgress={structureStore.loadProgress}
 				error={structureStore.error}
-				onUpload={(file) => structureStore.loadModel(file)}
+				onUpload={(files) => structureStore.loadModel(files[0])}
 				onClearError={() => (structureStore.error = null)}
 			/>
 		</div>

@@ -5,7 +5,7 @@
 		isLoading: boolean
 		loadProgress: number
 		error: string | null
-		onUpload: (file: File) => void
+		onUpload: (files: File[]) => void
 		onClearError?: () => void
 	}
 
@@ -14,22 +14,23 @@
 	let isDragOver = $state(false)
 	let fileInput: HTMLInputElement
 
-	async function handleFile(file: File) {
-		if (!file.name.toLowerCase().endsWith('.glb')) {
-			// Note: Error handling is now responsibility of caller or passed as prop
-			// But we can still do a basic check here if needed.
-			// For consistency with original code, let's keep it store-agnostic.
-			onUpload(file)
-			return
+	async function handleFiles(files: FileList | File[]) {
+		const validFiles: File[] = []
+		const fileArray = Array.from(files)
+
+		for (const file of fileArray) {
+			if (!file.name.toLowerCase().endsWith('.glb')) {
+				continue
+			}
+			if (file.size > 500 * 1024 * 1024) {
+				continue
+			}
+			validFiles.push(file)
 		}
 
-		if (file.size > 500 * 1024 * 1024) {
-			// 500MB 限制
-			onUpload(file) // Let the caller handle the size error if they want
-			return
+		if (validFiles.length > 0) {
+			onUpload(validFiles)
 		}
-
-		onUpload(file)
 	}
 
 	function handleDrop(e: DragEvent) {
@@ -38,14 +39,14 @@
 
 		const files = e.dataTransfer?.files
 		if (files && files.length > 0) {
-			handleFile(files[0])
+			handleFiles(files)
 		}
 	}
 
 	function handleFileSelect(e: Event) {
 		const input = e.target as HTMLInputElement
 		if (input.files && input.files.length > 0) {
-			handleFile(input.files[0])
+			handleFiles(input.files)
 		}
 	}
 
@@ -74,6 +75,7 @@
 	<input
 		type="file"
 		accept=".glb"
+		multiple
 		bind:this={fileInput}
 		onchange={handleFileSelect}
 		style="display: none"
@@ -100,7 +102,7 @@
 		</div>
 	{:else}
 		<Upload size={48} />
-		<p>拖曳 GLB 檔案至此，或點擊選擇</p>
+		<p>拖曳多個 GLB 檔案至此，或點擊選擇</p>
 	{/if}
 </div>
 
