@@ -7,9 +7,10 @@
 		error: string | null
 		onUpload: (files: File[]) => void
 		onClearError?: () => void
+		singleFileOnly?: boolean
 	}
 
-	let { isLoading, loadProgress, error, onUpload, onClearError = () => {} }: Props = $props()
+	let { isLoading, loadProgress, error, onUpload, onClearError = () => {}, singleFileOnly = false }: Props = $props()
 
 	let isDragOver = $state(false)
 	let fileInput: HTMLInputElement
@@ -29,7 +30,8 @@
 		}
 
 		if (validFiles.length > 0) {
-			onUpload(validFiles)
+			// 單檔模式時只取第一個
+			onUpload(singleFileOnly ? [validFiles[0]] : validFiles)
 		}
 	}
 
@@ -75,7 +77,7 @@
 	<input
 		type="file"
 		accept=".glb"
-		multiple
+		multiple={!singleFileOnly}
 		bind:this={fileInput}
 		onchange={handleFileSelect}
 		style="display: none"

@@ -20,6 +20,7 @@
 				error={structureStore.error}
 				onUpload={(files) => structureStore.loadModel(files[0])}
 				onClearError={() => (structureStore.error = null)}
+				singleFileOnly={true}
 			/>
 		</div>
 	{:else}
