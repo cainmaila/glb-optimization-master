@@ -23,7 +23,7 @@
 	let isLoading = $state(false)
 	let loadProgress = $state(0)
 	let error = $state<string | null>(null)
-	
+
 	// Batch State
 	let mode = $state<'single' | 'batch'>('single')
 	let batchFiles = $state<BatchFile[]>([])
@@ -44,7 +44,7 @@
 				loadProgress = 100
 			} else {
 				mode = 'batch'
-				batchFiles = files.map(f => ({
+				batchFiles = files.map((f) => ({
 					id: Math.random().toString(36).substr(2, 9),
 					file: f,
 					status: 'pending',
@@ -86,7 +86,7 @@
 
 				const data = await response.json()
 				const { file: base64File, optimizedReport } = data
-				
+
 				// Decode
 				const byteCharacters = atob(base64File)
 				const byteNumbers = new Array(byteCharacters.length)
@@ -102,7 +102,6 @@
 					blob: blob,
 					optimizedSize: blob.size
 				}
-
 			} catch (err) {
 				console.error(err)
 				batchFiles[i] = {
@@ -121,8 +120,8 @@
 
 		for (const item of batchFiles) {
 			if (item.status === 'done' && item.blob) {
-			const name = item.file.name
-			zip.file(name, item.blob)
+				const name = item.file.name
+				zip.file(name, item.blob)
 				count++
 			}
 		}
@@ -151,7 +150,7 @@
 		document.body.removeChild(a)
 		URL.revokeObjectURL(url)
 	}
-	
+
 	function reset() {
 		mode = 'single'
 		batchFiles = []
@@ -195,21 +194,14 @@
 	{:else if mode === 'batch'}
 		<div class="batch-layout">
 			<div class="batch-list-section">
-				<BatchFileListView 
-					files={batchFiles} 
-					onDownloadOne={downloadSingleFromBatch}
-				/>
+				<BatchFileListView files={batchFiles} onDownloadOne={downloadSingleFromBatch} />
 			</div>
-			
+
 			<div class="controls-section">
 				<SettingsPanel />
-				
+
 				<div class="batch-actions">
-					<button 
-						class="action-button primary" 
-						disabled={isBatchProcessing}
-						onclick={processBatch}
-					>
+					<button class="action-button primary" disabled={isBatchProcessing} onclick={processBatch}>
 						{#if isBatchProcessing}
 							Processing...
 						{:else}
@@ -217,15 +209,12 @@
 						{/if}
 					</button>
 
-					{#if batchFiles.some(f => f.status === 'done')}
-						<button 
-							class="action-button success" 
-							onclick={downloadBatchZip}
-						>
+					{#if batchFiles.some((f) => f.status === 'done')}
+						<button class="action-button success" onclick={downloadBatchZip}>
 							<Download size={18} /> Download All (ZIP)
 						</button>
 					{/if}
-					
+
 					<button class="action-button secondary" onclick={reset}>
 						<RefreshCcw size={18} /> Optimization New Batch
 					</button>
@@ -260,14 +249,14 @@
 		justify-content: center;
 		margin-bottom: 2rem;
 	}
-	
+
 	.back-btn {
 		position: absolute;
 		left: 0;
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
-		background: rgba(255,255,255,0.1);
+		background: rgba(255, 255, 255, 0.1);
 		border: none;
 		color: white;
 		padding: 0.5rem 1rem;
@@ -275,9 +264,9 @@
 		cursor: pointer;
 		transition: all 0.2s;
 	}
-	
+
 	.back-btn:hover {
-		background: rgba(255,255,255,0.2);
+		background: rgba(255, 255, 255, 0.2);
 	}
 
 	.upload-container {
@@ -285,7 +274,8 @@
 		margin: 4rem auto;
 	}
 
-	.viewer-layout, .batch-layout {
+	.viewer-layout,
+	.batch-layout {
 		display: flex;
 		flex-direction: column;
 		gap: 2rem;
@@ -333,7 +323,7 @@
 		color: #1a1a1a;
 		box-shadow: 0 4px 15px rgba(67, 233, 123, 0.4);
 	}
-	
+
 	.action-button.success:hover {
 		transform: translateY(-2px);
 		box-shadow: 0 6px 20px rgba(67, 233, 123, 0.6);
@@ -349,18 +339,20 @@
 	}
 
 	@media (min-width: 1024px) {
-		.viewer-layout, .batch-layout {
+		.viewer-layout,
+		.batch-layout {
 			flex-direction: row;
 			align-items: flex-start;
 		}
 
-		.preview-section, .batch-list-section {
+		.preview-section,
+		.batch-list-section {
 			flex: 1;
 			/* position: sticky; */ /* Removed sticky to avoid complications for now */
 			/* top: 2rem; */
 			min-height: 400px;
 		}
-		
+
 		.preview-section {
 			height: 600px;
 			background: rgba(255, 255, 255, 0.02);

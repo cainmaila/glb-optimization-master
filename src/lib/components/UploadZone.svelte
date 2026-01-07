@@ -10,7 +10,14 @@
 		singleFileOnly?: boolean
 	}
 
-	let { isLoading, loadProgress, error, onUpload, onClearError = () => {}, singleFileOnly = false }: Props = $props()
+	let {
+		isLoading,
+		loadProgress,
+		error,
+		onUpload,
+		onClearError = () => {},
+		singleFileOnly = false
+	}: Props = $props()
 
 	let isDragOver = $state(false)
 	let fileInput: HTMLInputElement

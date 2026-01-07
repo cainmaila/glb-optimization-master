@@ -4,6 +4,7 @@
 	import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 	import { structureStore } from '../stores/structureStore.svelte'
 	import { flyToObject } from '$lib/utils/cameraAnimations'
+	import { KeyboardControls } from '$lib/utils/keyboardControls'
 
 	let canvasRef: HTMLCanvasElement
 	let containerRef: HTMLDivElement
@@ -12,6 +13,7 @@
 	let camera: THREE.PerspectiveCamera
 	let renderer: THREE.WebGLRenderer
 	let controls: OrbitControls
+	let keyboardControls: KeyboardControls
 	let gridHelper: THREE.GridHelper
 	let boundingBoxHelper: THREE.BoxHelper | null = null
 
@@ -31,6 +33,8 @@
 			cancelAnimationFrame(animationId)
 			renderer.dispose()
 			controls.dispose()
+			keyboardControls.dispose()
+			window.removeEventListener('resize', handleResize)
 		}
 	})
 
@@ -60,6 +64,9 @@
 		controls = new OrbitControls(camera, renderer.domElement)
 		controls.enableDamping = true
 		controls.dampingFactor = 0.05
+
+		// Keyboard Controls
+		keyboardControls = new KeyboardControls()
 
 		// Lighting
 		setupLights()
@@ -95,9 +102,17 @@
 		renderer.setSize(width, height)
 	}
 
+	let lastTime = performance.now()
 	function animate() {
 		animationId = requestAnimationFrame(animate)
+		const time = performance.now()
+		const deltaTime = (time - lastTime) / 1000
+		lastTime = time
+
+		// WSAD 控制始終啟用
+		keyboardControls.update(camera, controls, deltaTime)
 		controls.update()
+
 		renderer.render(scene, camera)
 	}
 
