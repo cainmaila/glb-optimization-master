@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Download } from 'lucide-svelte'
+	import { Download, FileBox } from 'lucide-svelte'
 	import TreeNode from './TreeNode.svelte'
 	import { structureStore } from '../stores/structureStore.svelte'
 
@@ -33,6 +33,17 @@
 			>
 				<Download size={16} />
 				<span>匯出</span>
+			</button>
+
+			<!-- 摘取按鈕 -->
+			<button
+				class="extract-btn"
+				onclick={() => structureStore.exportSelectedNode()}
+				title="摘取並烘焙選取節點"
+				disabled={!structureStore.selectedNodeId}
+			>
+				<FileBox size={16} />
+				<span>摘取</span>
 			</button>
 
 			<!-- 清除選取按鈕 -->
@@ -111,6 +122,30 @@
 	}
 
 	.export-btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.extract-btn {
+		padding: 0.4rem 0.8rem;
+		font-size: 0.85rem;
+		background: rgba(234, 187, 102, 0.2);
+		border: 1px solid rgba(234, 187, 102, 0.4);
+		border-radius: 4px;
+		color: rgba(255, 255, 255, 0.9);
+		cursor: pointer;
+		transition: all 0.2s;
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+	}
+
+	.extract-btn:hover:not(:disabled) {
+		background: rgba(234, 187, 102, 0.3);
+		border-color: rgba(234, 187, 102, 0.6);
+	}
+
+	.extract-btn:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
 	}

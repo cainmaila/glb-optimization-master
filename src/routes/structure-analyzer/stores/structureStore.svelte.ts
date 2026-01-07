@@ -113,6 +113,16 @@ class StructureStore {
 		this.isLoading = false
 		this.loadProgress = 0
 	}
+	// 導出當前選取的節點
+	async exportSelectedNode() {
+		if (!this.selectedNodeId) return
+
+		const object = this.findObjectById(this.selectedNodeId)
+		if (!object) return
+
+		const { extractAndBakeNode } = await import('$lib/utils/modelExtraction')
+		await extractAndBakeNode(object, object.name || 'extracted_model')
+	}
 }
 
 export const structureStore = new StructureStore()
