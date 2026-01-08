@@ -1,6 +1,9 @@
 import type * as THREE from 'three'
 import type { TreeNode, ViewerConfig } from '$lib/types/structure'
 import { convertToExportNode, generateExportFilename, downloadJSON } from '$lib/utils/treeExport'
+import type { ExtractionData } from '$lib/utils/modelExtraction'
+
+export type ViewMode = 'DEFAULT' | 'EXTRACTION_MENU' | 'PREVIEW_LOCATION' | 'ADJUST_ORIENTATION'
 
 class StructureStore {
 	// 模型狀態
@@ -22,6 +25,10 @@ class StructureStore {
 		showAxes: false,
 		xrayOpacity: 0.1
 	})
+
+	// 摘取流程狀態
+	viewMode = $state<ViewMode>('DEFAULT')
+	extractionData = $state<ExtractionData | null>(null)
 
 	// 載入模型
 	async loadModel(file: File): Promise<void> {
@@ -112,8 +119,100 @@ class StructureStore {
 		this.error = null
 		this.isLoading = false
 		this.loadProgress = 0
+		this.viewMode = 'DEFAULT'
+		this.extractionData = null
 	}
-	// 導出當前選取的節點
+
+	// ========== 摘取流程 ==========
+
+	/**
+	 * 開始摘取流程：準備資料並顯示選單
+	 */
+	async startExtraction(): Promise<void> {
+		if (!this.selectedNodeId) return
+
+		const object = this.findObjectById(this.selectedNodeId)
+		if (!object) return
+
+		try {
+			const { prepareExtraction } = await import('$lib/utils/modelExtraction')
+			this.extractionData = prepareExtraction(object)
+			this.viewMode = 'EXTRACTION_MENU'
+		} catch (error) {
+			this.error = error instanceof Error ? error.message : '摘取準備失敗'
+		}
+	}
+
+	/**
+	 * 取消摘取流程
+	 */
+	cancelExtraction(): void {
+		this.extractionData = null
+		this.viewMode = 'DEFAULT'
+	}
+
+	/**
+	 * 切換到預覽位置模式
+	 */
+	enterPreviewLocation(): void {
+		this.viewMode = 'PREVIEW_LOCATION'
+	}
+
+	/**
+	 * 切換到調整方向模式
+	 */
+	enterAdjustOrientation(): void {
+		this.viewMode = 'ADJUST_ORIENTATION'
+	}
+
+	/**
+	 * 返回摘取選單
+	 */
+	backToMenu(): void {
+		this.viewMode = 'EXTRACTION_MENU'
+	}
+
+	/**
+	 * 旋轉摘取的物件 90 度
+	 */
+	async rotateExtracted(axis: 'x' | 'y' | 'z'): Promise<void> {
+		if (!this.extractionData) return
+
+		const { applyRotationToExtractedNode } = await import('$lib/utils/modelExtraction')
+		applyRotationToExtractedNode(this.extractionData.clonedNode, axis)
+
+		// 觸發響應式更新
+		this.extractionData = { ...this.extractionData }
+	}
+
+	/**
+	 * 確認方向調整並返回選單
+	 */
+	confirmOrientation(): void {
+		// 旋轉已經烘培進 geometry，直接返回選單
+		this.viewMode = 'EXTRACTION_MENU'
+	}
+
+	/**
+	 * 完成摘取流程，下載 ZIP
+	 */
+	async finalizeExtraction(): Promise<void> {
+		if (!this.extractionData) return
+
+		try {
+			const { packageAndDownload } = await import('$lib/utils/modelExtraction')
+			await packageAndDownload(
+				this.extractionData,
+				this.extractionData.metadata.name || 'extracted_model'
+			)
+			// 下載後清除狀態
+			this.cancelExtraction()
+		} catch (error) {
+			this.error = error instanceof Error ? error.message : '下載失敗'
+		}
+	}
+
+	// 導出當前選取的節點 (legacy, kept for compatibility)
 	async exportSelectedNode() {
 		if (!this.selectedNodeId) return
 

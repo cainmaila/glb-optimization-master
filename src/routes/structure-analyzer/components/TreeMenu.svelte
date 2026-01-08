@@ -38,7 +38,7 @@
 			<!-- 摘取按鈕 -->
 			<button
 				class="extract-btn"
-				onclick={() => structureStore.exportSelectedNode()}
+				onclick={() => structureStore.startExtraction()}
 				title="摘取並烘焙選取節點"
 				disabled={!structureStore.selectedNodeId}
 			>

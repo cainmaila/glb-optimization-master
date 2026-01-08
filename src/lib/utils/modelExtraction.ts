@@ -2,7 +2,7 @@ import * as THREE from 'three'
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js'
 import JSZip from 'jszip'
 
-interface ExtractionMetadata {
+export interface ExtractionMetadata {
 	name: string
 	originalPath: string
 	originalWorldMatrix: number[] // 原始完整世界矩陣（參考用，不應直接用於恢復）
@@ -12,36 +12,97 @@ interface ExtractionMetadata {
 	size: { x: number; y: number; z: number; unit: string } // 尺寸
 }
 
-export async function extractAndBakeNode(
-	node: THREE.Object3D,
-	filename: string = 'model'
-): Promise<void> {
-	const zip = new JSZip()
+export interface ExtractionData {
+	clonedNode: THREE.Object3D
+	metadata: ExtractionMetadata
+	originalNode: THREE.Object3D
+}
 
+/**
+ * Prepares extraction data without downloading.
+ * Returns the cloned node, metadata, and reference to the original node.
+ */
+export function prepareExtraction(node: THREE.Object3D): ExtractionData {
 	// 1. Calculate World Matrix (before modification)
-	// This is the matrix needed to place the cleaned model back into the world
 	node.updateMatrixWorld(true)
 	const worldMatrix = node.matrixWorld.toArray()
 
 	// 2. Clone the node to avoid modifying the scene
-	// We utilize the clone to apply transformations
 	const clonedNode = node.clone(true)
 
-	// 3. Bake Transforms
-
-	// Step 3.1: Calculate Bounding Box of the CLONED (but originally transformed) hierarchy
-
-	const box = new THREE.Box3().setFromObject(node) // Use ORIGINAL node for accurate world bounds
+	// 3. Calculate Bounding Box
+	const box = new THREE.Box3().setFromObject(node)
 	const center = box.getCenter(new THREE.Vector3())
 	const size = box.getSize(new THREE.Vector3())
 
-	// We will traverse the CLONE.
-	// For every Mesh, we want to apply its total World Transform (from the original scene) into the Geometry,
-	// THEN subtract the 'center' offset.
-
+	// 4. Bake transforms into clone
 	processNodeForBaking(node, clonedNode, center)
 
-	// 4. Generate GLB
+	// 5. Create Metadata JSON
+	const metadata: ExtractionMetadata = {
+		name: node.name || 'Extracted Node',
+		originalPath: getNodePath(node),
+		originalWorldMatrix: worldMatrix,
+		worldCenter: {
+			x: center.x,
+			y: center.y,
+			z: center.z
+		},
+		restoreMatrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, center.x, center.y, center.z, 1],
+		note: '使用 restoreMatrix 將烘培後的模型放回原位。請勿直接使用 originalWorldMatrix，因為會重複套用縮放。',
+		size: {
+			x: Number((size.x * 100).toFixed(1)),
+			y: Number((size.y * 100).toFixed(1)),
+			z: Number((size.z * 100).toFixed(1)),
+			unit: 'cm'
+		}
+	}
+
+	return { clonedNode, metadata, originalNode: node }
+}
+
+/**
+ * Applies a 90-degree rotation to the extracted node around the specified axis.
+ * This modifies the clonedNode's geometry directly (bakes the rotation).
+ */
+export function applyRotationToExtractedNode(
+	clonedNode: THREE.Object3D,
+	axis: 'x' | 'y' | 'z'
+): void {
+	const rotationMatrix = new THREE.Matrix4()
+	const angle = Math.PI / 2 // 90 degrees
+
+	switch (axis) {
+		case 'x':
+			rotationMatrix.makeRotationX(angle)
+			break
+		case 'y':
+			rotationMatrix.makeRotationY(angle)
+			break
+		case 'z':
+			rotationMatrix.makeRotationZ(angle)
+			break
+	}
+
+	// Apply rotation to all geometries in the clone
+	clonedNode.traverse((child) => {
+		if (child instanceof THREE.Mesh && child.geometry) {
+			child.geometry.applyMatrix4(rotationMatrix)
+		}
+	})
+}
+
+/**
+ * Packages the extraction data into a ZIP and triggers download.
+ */
+export async function packageAndDownload(
+	extractionData: ExtractionData,
+	filename: string = 'model'
+): Promise<void> {
+	const zip = new JSZip()
+	const { clonedNode, metadata } = extractionData
+
+	// Generate GLB
 	const exporter = new GLTFExporter()
 	const glbBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
 		exporter.parse(
@@ -52,37 +113,24 @@ export async function extractAndBakeNode(
 		)
 	})
 
-	// 5. Create Metadata JSON
-	const metadata: ExtractionMetadata = {
-		name: node.name || 'Extracted Node',
-		originalPath: getNodePath(node),
-		originalWorldMatrix: worldMatrix, // 原始完整世界矩陣（參考用）
-		worldCenter: {
-			x: center.x,
-			y: center.y,
-			z: center.z
-		},
-		restoreMatrix: [
-			1, 0, 0, 0,
-			0, 1, 0, 0,
-			0, 0, 1, 0,
-			center.x, center.y, center.z, 1
-		],
-		note: '使用 restoreMatrix 將烘培後的模型放回原位。請勿直接使用 originalWorldMatrix，因為會重複套用縮放。',
-		size: {
-			x: Number((size.x * 100).toFixed(1)),
-			y: Number((size.y * 100).toFixed(1)),
-			z: Number((size.z * 100).toFixed(1)),
-			unit: 'cm'
-		}
-	}
-
-	// 6. Zip and Download
+	// Zip and Download
 	zip.file('model.glb', glbBuffer)
 	zip.file('metadata.json', JSON.stringify(metadata, null, 2))
 
 	const content = await zip.generateAsync({ type: 'blob' })
 	downloadBlob(content, `${filename}.zip`)
+}
+
+/**
+ * Legacy function for backward compatibility.
+ * Directly extracts, bakes, and downloads in one step.
+ */
+export async function extractAndBakeNode(
+	node: THREE.Object3D,
+	filename: string = 'model'
+): Promise<void> {
+	const extractionData = prepareExtraction(node)
+	await packageAndDownload(extractionData, filename)
 }
 
 function processNodeForBaking(

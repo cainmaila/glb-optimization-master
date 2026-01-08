@@ -3,9 +3,13 @@
 	import UploadZone from '$lib/components/UploadZone.svelte'
 	import TreeMenu from './components/TreeMenu.svelte'
 	import StructureViewer from './components/StructureViewer.svelte'
+	import ExtractionMenu from './components/ExtractionMenu.svelte'
+	import LocationPreview from './components/LocationPreview.svelte'
+	import OrientationAdjuster from './components/OrientationAdjuster.svelte'
 	import { structureStore } from './stores/structureStore.svelte'
 
 	const hasModel = $derived(!!structureStore.model)
+	const viewMode = $derived(structureStore.viewMode)
 </script>
 
 <div class="page-container">
@@ -31,6 +35,15 @@
 		</div>
 	{/if}
 </div>
+
+<!-- 摘取流程 overlays -->
+{#if viewMode === 'EXTRACTION_MENU'}
+	<ExtractionMenu />
+{:else if viewMode === 'PREVIEW_LOCATION'}
+	<LocationPreview />
+{:else if viewMode === 'ADJUST_ORIENTATION'}
+	<OrientationAdjuster />
+{/if}
 
 <style>
 	.page-container {
