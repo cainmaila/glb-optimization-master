@@ -4,9 +4,12 @@ import JSZip from 'jszip'
 
 interface ExtractionMetadata {
 	name: string
-	originalPath: string // Placeholder for now, or can be passed in
-	worldMatrix: number[] // Array of 16 numbers
-	size: { x: number; y: number; z: number; unit: string } // Dimensions
+	originalPath: string
+	originalWorldMatrix: number[] // 原始完整世界矩陣（參考用，不應直接用於恢復）
+	worldCenter: { x: number; y: number; z: number } // 烘培前的世界空間中心點
+	restoreMatrix: number[] // 恢復用的純平移矩陣（16個數字）
+	note: string // 使用說明
+	size: { x: number; y: number; z: number; unit: string } // 尺寸
 }
 
 export async function extractAndBakeNode(
@@ -53,7 +56,19 @@ export async function extractAndBakeNode(
 	const metadata: ExtractionMetadata = {
 		name: node.name || 'Extracted Node',
 		originalPath: getNodePath(node),
-		worldMatrix: worldMatrix, // The original transformation
+		originalWorldMatrix: worldMatrix, // 原始完整世界矩陣（參考用）
+		worldCenter: {
+			x: center.x,
+			y: center.y,
+			z: center.z
+		},
+		restoreMatrix: [
+			1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 0,
+			center.x, center.y, center.z, 1
+		],
+		note: '使用 restoreMatrix 將烘培後的模型放回原位。請勿直接使用 originalWorldMatrix，因為會重複套用縮放。',
 		size: {
 			x: Number((size.x * 100).toFixed(1)),
 			y: Number((size.y * 100).toFixed(1)),
