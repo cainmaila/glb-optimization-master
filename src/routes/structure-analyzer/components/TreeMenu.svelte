@@ -1,9 +1,10 @@
 <script lang="ts">
-	import { Download, FileBox } from 'lucide-svelte'
+	import { Download, FileBox, Upload, Save } from 'lucide-svelte'
 	import TreeNode from './TreeNode.svelte'
 	import { structureStore } from '../stores/structureStore.svelte'
 
 	const treeData = $derived(structureStore.treeData)
+	const hasModel = $derived(!!structureStore.model)
 
 	function handleSelect(id: string) {
 		// 如果點擊已選取的節點，則取消選取
@@ -17,13 +18,40 @@
 	function handleExport() {
 		structureStore.exportTree()
 	}
+
+	function handleImport(e: Event) {
+		const input = e.target as HTMLInputElement
+		if (input.files && input.files[0]) {
+			structureStore.importStructure(input.files[0])
+			// 清空 input 讓相同檔案可以再次觸發
+			input.value = ''
+		}
+	}
 </script>
 
 <aside class="tree-menu">
 	<div class="header">
+		<input
+			type="file"
+			id="structure-import-input"
+			accept=".json"
+			style="display: none"
+			onchange={handleImport}
+		/>
 		<h3>模型結構</h3>
 
 		<div class="action-buttons">
+			<!-- 匯入按鈕 -->
+			<button
+				class="import-btn"
+				onclick={() => document.getElementById('structure-import-input')?.click()}
+				title="匯入結構 JSON"
+				disabled={!hasModel}
+			>
+				<Upload size={16} />
+				<span>匯入</span>
+			</button>
+
 			<!-- 匯出按鈕 -->
 			<button
 				class="export-btn"
@@ -32,7 +60,18 @@
 				disabled={treeData.length === 0}
 			>
 				<Download size={16} />
-				<span>匯出</span>
+				<span>結構</span>
+			</button>
+
+			<!-- GLB 下載按鈕 -->
+			<button
+				class="save-btn"
+				onclick={() => structureStore.downloadModel()}
+				title="下載修改後的 GLB 模型"
+				disabled={!hasModel}
+			>
+				<Save size={16} />
+				<span>模型</span>
 			</button>
 
 			<!-- 摘取按鈕 -->
@@ -160,6 +199,30 @@
 		color: rgba(255, 255, 255, 0.9);
 		cursor: pointer;
 		transition: background 0.2s;
+	}
+
+	.save-btn {
+		padding: 0.4rem 0.8rem;
+		font-size: 0.85rem;
+		background: rgba(16, 185, 129, 0.2);
+		border: 1px solid rgba(16, 185, 129, 0.4);
+		border-radius: 4px;
+		color: rgba(255, 255, 255, 0.9);
+		cursor: pointer;
+		transition: all 0.2s;
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+	}
+
+	.save-btn:hover:not(:disabled) {
+		background: rgba(16, 185, 129, 0.3);
+		border-color: rgba(16, 185, 129, 0.6);
+	}
+
+	.save-btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
 	}
 
 	.clear-btn:hover {

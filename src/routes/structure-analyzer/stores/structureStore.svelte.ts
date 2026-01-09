@@ -222,6 +222,59 @@ class StructureStore {
 		const { extractAndBakeNode } = await import('$lib/utils/modelExtraction')
 		await extractAndBakeNode(object, object.name || 'extracted_model')
 	}
+
+	/**
+	 * 匯入並應用結構更新 (Renaming)
+	 */
+	async importStructure(file: File): Promise<void> {
+		this.isLoading = true
+		this.error = null
+
+		try {
+			const text = await file.text()
+			const json = JSON.parse(text)
+
+			// 動態載入 schema 避免循環依賴或過大 bundle
+			const { exportNodeSchema } = await import('$lib/schemas/structureSchema')
+			const parsedData = exportNodeSchema.array().parse(json)
+
+			if (!this.model) {
+				throw new Error('請先載入模型後再匯入結構')
+			}
+
+			// 應用更新 (Bottom-up renaming)
+			const { applyStructureUpdates } = await import('$lib/utils/structureImport')
+			applyStructureUpdates(this.model, parsedData)
+
+			// 重新生成樹狀資料以更新 UI
+			this.treeData = this.generateTreeData(this.model)
+		} catch (e) {
+			console.error('Import error:', e)
+			this.error = e instanceof Error ? `匯入失敗: ${e.message}` : '匯入時發生未知錯誤'
+		} finally {
+			this.isLoading = false
+		}
+	}
+
+	/**
+	 * 下載目前的 GLB 模型 (含 modifications)
+	 */
+	async downloadModel(): Promise<void> {
+		if (!this.model) return
+
+		this.isLoading = true
+		try {
+			const { exportModelToGLB } = await import('$lib/utils/modelExport')
+			// 使用當前時間戳作為檔名
+			const timestamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0]
+			await exportModelToGLB(this.model, `model-modified-${timestamp}`)
+		} catch (error) {
+			console.error('Model export error:', error)
+			this.error = error instanceof Error ? `模型下載失敗: ${error.message}` : '模型下載時發生錯誤'
+		} finally {
+			this.isLoading = false
+		}
+	}
 }
 
 export const structureStore = new StructureStore()
