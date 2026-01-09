@@ -320,6 +320,9 @@ class StructureStore {
 	async startBatchExtraction(): Promise<void> {
 		if (this.checkedNodeIds.size < 2) return
 
+		// 清除選取狀態以避免 X-ray 效果影響材質
+		this.clearSelection()
+
 		this.isBatchMode = true
 		this.batchProgress = { current: 0, total: this.checkedNodeIds.size }
 
