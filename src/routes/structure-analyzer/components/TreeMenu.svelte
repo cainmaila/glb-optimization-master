@@ -237,9 +237,8 @@
 	.tree-container {
 		flex: 1;
 		overflow-y: auto;
-		overflow-x: auto;
+		overflow-x: hidden;
 		padding: 0.5rem;
-		min-height: 0;
 	}
 
 	.tree-container::-webkit-scrollbar {
