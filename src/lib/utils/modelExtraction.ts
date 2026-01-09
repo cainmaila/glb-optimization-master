@@ -30,9 +30,8 @@ export function prepareExtraction(node: THREE.Object3D): ExtractionData {
 	// 2. Clone the node to avoid modifying the scene
 	const clonedNode = node.clone(true)
 
-	// 2.5. Restore original materials (remove X-ray transparency)
-	// Note: We restore materials from the original node's userData, not the clone's
-	restoreOriginalMaterials(clonedNode, node)
+	// Note: Material restoration temporarily disabled to preserve original materials
+	// restoreOriginalMaterials(clonedNode, node)
 
 	// 3. Calculate Bounding Box
 	const box = new THREE.Box3().setFromObject(node)
