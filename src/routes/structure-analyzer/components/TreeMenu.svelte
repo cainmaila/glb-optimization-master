@@ -72,7 +72,8 @@
 
 <style>
 	.tree-menu {
-		width: 350px;
+		width: 320px;
+		flex-shrink: 0;
 		height: 100%;
 		background: rgba(10, 10, 20, 0.9);
 		backdrop-filter: blur(10px);

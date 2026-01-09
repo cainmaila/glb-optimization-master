@@ -138,6 +138,9 @@
 		flex: 1;
 		font-size: 0.9rem;
 		color: rgba(255, 255, 255, 0.9);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.node-type {

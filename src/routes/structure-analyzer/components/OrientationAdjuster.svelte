@@ -2,7 +2,6 @@
 	import { onMount } from 'svelte'
 	import * as THREE from 'three'
 	import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-	// @ts-expect-error - three-viewport-gizmo 沒有型別定義
 	import { ViewportGizmo } from 'three-viewport-gizmo'
 	import { ArrowLeft, RotateCcw, Check } from 'lucide-svelte'
 	import { structureStore } from '../stores/structureStore.svelte'

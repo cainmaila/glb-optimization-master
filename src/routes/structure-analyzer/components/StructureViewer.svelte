@@ -16,6 +16,7 @@
 	let keyboardControls: KeyboardControls
 	let gridHelper: THREE.GridHelper
 	let boundingBoxHelper: THREE.BoxHelper | null = null
+	let resizeObserver: ResizeObserver
 
 	let currentSelectedObject: THREE.Object3D | null = null
 	let animationId: number
@@ -30,11 +31,11 @@
 		animate()
 
 		return () => {
+			if (resizeObserver) resizeObserver.disconnect()
 			cancelAnimationFrame(animationId)
-			renderer.dispose()
-			controls.dispose()
-			keyboardControls.dispose()
-			window.removeEventListener('resize', handleResize)
+			if (renderer) renderer.dispose()
+			if (controls) controls.dispose()
+			if (keyboardControls) keyboardControls.dispose()
 		}
 	})
 
@@ -76,7 +77,10 @@
 		scene.add(gridHelper)
 
 		// Responsive
-		window.addEventListener('resize', handleResize)
+		resizeObserver = new ResizeObserver(() => {
+			handleResize()
+		})
+		resizeObserver.observe(containerRef)
 	}
 
 	function setupLights() {
