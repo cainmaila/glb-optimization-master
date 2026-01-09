@@ -88,9 +88,7 @@
 			<button
 				class="extract-btn"
 				onclick={handleExtraction}
-				title={isBatchSelection
-					? `批量摘取 ${checkedCount} 個節點`
-					: '摘取並烘焙選取節點'}
+				title={isBatchSelection ? `批量摘取 ${checkedCount} 個節點` : '摘取並烘焙選取節點'}
 				disabled={isBatchSelection ? checkedCount < 2 : !structureStore.selectedNodeId}
 			>
 				<FileBox size={16} />
@@ -106,9 +104,7 @@
 
 			<!-- 清除勾選按鈕 -->
 			{#if checkedCount > 0}
-				<button class="clear-btn" onclick={() => structureStore.clearChecked()}>
-					清除勾選
-				</button>
+				<button class="clear-btn" onclick={() => structureStore.clearChecked()}> 清除勾選 </button>
 			{/if}
 		</div>
 	</div>
@@ -128,25 +124,33 @@
 	</div>
 </aside>
 
-<style>
+<style lang="postcss">
 	.tree-menu {
-		width: 320px;
-		flex-shrink: 0;
-		height: 100%;
-		background: rgba(10, 10, 20, 0.9);
+		position: fixed;
+		top: 1rem;
+		left: 1rem;
+		min-width: 280px;
+		max-width: min(90vw, 500px);
+		width: fit-content;
+		max-height: calc(100vh - 2rem);
+		background: rgba(10, 10, 20, 0.95);
 		backdrop-filter: blur(10px);
-		border-right: 1px solid rgba(255, 255, 255, 0.1);
+		border: 1px solid rgba(255, 255, 255, 0.15);
+		border-radius: 12px;
 		display: flex;
 		flex-direction: column;
 		overflow: hidden;
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+		z-index: 100;
 	}
 
 	.header {
 		padding: 1rem;
 		border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 		display: flex;
-		justify-content: space-between;
-		align-items: center;
+		flex-direction: column;
+		gap: 0.75rem;
+		flex-shrink: 0;
 	}
 
 	h3 {
@@ -159,6 +163,32 @@
 		display: flex;
 		gap: 0.5rem;
 		align-items: center;
+		flex-wrap: wrap;
+	}
+
+	.import-btn {
+		padding: 0.4rem 0.8rem;
+		font-size: 0.85rem;
+		background: rgba(102, 126, 234, 0.2);
+		border: 1px solid rgba(102, 126, 234, 0.4);
+		border-radius: 4px;
+		color: rgba(255, 255, 255, 0.9);
+		cursor: pointer;
+		transition: all 0.2s;
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		white-space: nowrap;
+	}
+
+	.import-btn:hover:not(:disabled) {
+		background: rgba(102, 126, 234, 0.3);
+		border-color: rgba(102, 126, 234, 0.6);
+	}
+
+	.import-btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
 	}
 
 	.export-btn {
@@ -173,6 +203,7 @@
 		display: flex;
 		align-items: center;
 		gap: 0.4rem;
+		white-space: nowrap;
 	}
 
 	.export-btn:hover:not(:disabled) {
@@ -197,6 +228,7 @@
 		display: flex;
 		align-items: center;
 		gap: 0.4rem;
+		white-space: nowrap;
 	}
 
 	.extract-btn:hover:not(:disabled) {
@@ -218,6 +250,11 @@
 		color: rgba(255, 255, 255, 0.9);
 		cursor: pointer;
 		transition: background 0.2s;
+		white-space: nowrap;
+	}
+
+	.clear-btn:hover {
+		background: rgba(255, 255, 255, 0.15);
 	}
 
 	.save-btn {
@@ -232,6 +269,7 @@
 		display: flex;
 		align-items: center;
 		gap: 0.4rem;
+		white-space: nowrap;
 	}
 
 	.save-btn:hover:not(:disabled) {
@@ -251,7 +289,28 @@
 	.tree-container {
 		flex: 1;
 		overflow-y: auto;
+		overflow-x: auto;
 		padding: 0.5rem;
+		min-height: 0;
+	}
+
+	.tree-container::-webkit-scrollbar {
+		width: 8px;
+		height: 8px;
+	}
+
+	.tree-container::-webkit-scrollbar-track {
+		background: rgba(255, 255, 255, 0.05);
+		border-radius: 4px;
+	}
+
+	.tree-container::-webkit-scrollbar-thumb {
+		background: rgba(255, 255, 255, 0.2);
+		border-radius: 4px;
+	}
+
+	.tree-container::-webkit-scrollbar-thumb:hover {
+		background: rgba(255, 255, 255, 0.3);
 	}
 
 	.tree-root {

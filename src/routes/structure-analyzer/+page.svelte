@@ -14,11 +14,10 @@
 	const isBatchMode = $derived(structureStore.isBatchMode)
 </script>
 
-<div class="page-container">
-	<PageHeader title="結構解析大師" />
-
-	{#if !hasModel}
-		<!-- 上傳區域 -->
+{#if !hasModel}
+	<!-- 上傳區域 -->
+	<div class="page-container">
+		<PageHeader title="結構解析大師" />
 		<div class="upload-container">
 			<UploadZone
 				isLoading={structureStore.isLoading}
@@ -29,14 +28,14 @@
 				singleFileOnly={true}
 			/>
 		</div>
-	{:else}
-		<!-- Viewer 介面 -->
-		<div class="viewer-layout">
-			<TreeMenu />
-			<StructureViewer />
-		</div>
-	{/if}
-</div>
+	</div>
+{:else}
+	<!-- Fullscreen Viewer 介面 -->
+	<div class="fullscreen-viewer">
+		<StructureViewer />
+		<TreeMenu />
+	</div>
+{/if}
 
 <!-- 摘取流程 overlays -->
 {#if isBatchMode}
@@ -49,23 +48,24 @@
 	<OrientationAdjuster />
 {/if}
 
-<style>
+<style lang="postcss">
 	.page-container {
 		min-height: 100vh;
 		padding: 2rem;
 		color: #fff;
 	}
+
 	.upload-container {
 		max-width: 600px;
 		margin: 4rem auto;
 	}
 
-	.viewer-layout {
-		display: flex;
-		height: calc(100vh - 12rem);
-		background: rgba(255, 255, 255, 0.02);
-		border-radius: 12px;
-		overflow: hidden;
-		border: 1px solid rgba(255, 255, 255, 0.1);
+	.fullscreen-viewer {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100vw;
+		height: 100vh;
+		background: #0a0a14;
 	}
 </style>
