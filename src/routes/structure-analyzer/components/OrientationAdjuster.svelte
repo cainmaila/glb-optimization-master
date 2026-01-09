@@ -2,24 +2,20 @@
 	import { onMount } from 'svelte'
 	import * as THREE from 'three'
 	import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+	// @ts-expect-error - three-viewport-gizmo 沒有型別定義
+	import { ViewportGizmo } from 'three-viewport-gizmo'
 	import { ArrowLeft, RotateCcw, Check } from 'lucide-svelte'
 	import { structureStore } from '../stores/structureStore.svelte'
 
 	let canvasRef: HTMLCanvasElement
 	let containerRef: HTMLDivElement
-	let axesContainerRef: HTMLDivElement
-	let axesCanvasRef: HTMLCanvasElement
 
 	let scene: THREE.Scene
 	let camera: THREE.PerspectiveCamera
 	let renderer: THREE.WebGLRenderer
 	let controls: OrbitControls
 	let animationId: number
-
-	// Axes helper scene
-	let axesScene: THREE.Scene
-	let axesCamera: THREE.PerspectiveCamera
-	let axesRenderer: THREE.WebGLRenderer
+	let viewportGizmo: ViewportGizmo | null = null
 
 	let extractedObject: THREE.Object3D | null = null
 
@@ -27,13 +23,11 @@
 
 	onMount(() => {
 		initScene()
-		initAxesHelper()
 		animate()
 
 		return () => {
 			cancelAnimationFrame(animationId)
 			renderer?.dispose()
-			axesRenderer?.dispose()
 			controls?.dispose()
 			window.removeEventListener('resize', handleResize)
 		}
@@ -75,51 +69,22 @@
 		// Add extracted object
 		setupExtractedObject()
 
+		// Initialize ViewportGizmo
+		initViewportGizmo()
+
 		window.addEventListener('resize', handleResize)
 	}
 
-	function initAxesHelper() {
-		axesScene = new THREE.Scene()
-		axesCamera = new THREE.PerspectiveCamera(50, 1, 0.1, 100)
-		axesCamera.position.set(2, 2, 2)
-		axesCamera.lookAt(0, 0, 0)
+	function initViewportGizmo() {
+		if (!camera || !renderer) return
 
-		axesRenderer = new THREE.WebGLRenderer({
-			canvas: axesCanvasRef,
-			antialias: true,
-			alpha: true
+		viewportGizmo = new ViewportGizmo(camera, renderer, {
+			placement: 'bottom-right',
+			size: 120,
+			lineWidth: 2.5,
+			offset: { right: 20, bottom: 150 }
 		})
-		axesRenderer.setSize(120, 120)
-		axesRenderer.setClearColor(0x000000, 0)
-
-		const axesHelper = new THREE.AxesHelper(1.5)
-		axesScene.add(axesHelper)
-
-		// Add axis labels
-		addAxisLabels()
-	}
-
-	function addAxisLabels() {
-		// We'll use simple colored spheres at axis ends
-		const materials = {
-			x: new THREE.MeshBasicMaterial({ color: 0xff0000 }),
-			y: new THREE.MeshBasicMaterial({ color: 0x00ff00 }),
-			z: new THREE.MeshBasicMaterial({ color: 0x0000ff })
-		}
-
-		const sphereGeom = new THREE.SphereGeometry(0.08, 16, 16)
-
-		const xSphere = new THREE.Mesh(sphereGeom, materials.x)
-		xSphere.position.set(1.6, 0, 0)
-		axesScene.add(xSphere)
-
-		const ySphere = new THREE.Mesh(sphereGeom, materials.y)
-		ySphere.position.set(0, 1.6, 0)
-		axesScene.add(ySphere)
-
-		const zSphere = new THREE.Mesh(sphereGeom, materials.z)
-		zSphere.position.set(0, 0, 1.6)
-		axesScene.add(zSphere)
+		viewportGizmo.attachControls(controls)
 	}
 
 	function setupLights() {
@@ -162,13 +127,22 @@
 		camera.aspect = width / height
 		camera.updateProjectionMatrix()
 		renderer.setSize(width, height)
+
+		// Update ViewportGizmo
+		if (viewportGizmo) {
+			viewportGizmo.update()
+		}
 	}
 
 	function animate() {
 		animationId = requestAnimationFrame(animate)
 		controls?.update()
 		renderer?.render(scene, camera)
-		axesRenderer?.render(axesScene, axesCamera)
+
+		// Render ViewportGizmo
+		if (viewportGizmo) {
+			viewportGizmo.render()
+		}
 	}
 
 	async function handleRotate(axis: 'x' | 'y' | 'z') {
@@ -194,16 +168,6 @@
 
 	<div bind:this={containerRef} class="viewer-container">
 		<canvas bind:this={canvasRef}></canvas>
-
-		<!-- Axes Helper -->
-		<div bind:this={axesContainerRef} class="axes-helper">
-			<canvas bind:this={axesCanvasRef}></canvas>
-			<div class="axes-labels">
-				<span class="x-label">X</span>
-				<span class="y-label">Y</span>
-				<span class="z-label">Z</span>
-			</div>
-		</div>
 	</div>
 
 	<div class="rotation-controls">
@@ -287,59 +251,6 @@
 		width: 100%;
 		height: 100%;
 		display: block;
-	}
-
-	.axes-helper {
-		position: absolute;
-		bottom: 20px;
-		right: 20px;
-		width: 120px;
-		height: 120px;
-		background: rgba(0, 0, 0, 0.5);
-		border-radius: 8px;
-		border: 1px solid rgba(255, 255, 255, 0.2);
-	}
-
-	.axes-helper canvas {
-		width: 100%;
-		height: 100%;
-	}
-
-	.axes-labels {
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		pointer-events: none;
-	}
-
-	.x-label,
-	.y-label,
-	.z-label {
-		position: absolute;
-		font-size: 10px;
-		font-weight: bold;
-	}
-
-	.x-label {
-		right: 8px;
-		top: 50%;
-		transform: translateY(-50%);
-		color: #ff4444;
-	}
-
-	.y-label {
-		left: 50%;
-		top: 8px;
-		transform: translateX(-50%);
-		color: #44ff44;
-	}
-
-	.z-label {
-		left: 20px;
-		bottom: 20px;
-		color: #4444ff;
 	}
 
 	.rotation-controls {

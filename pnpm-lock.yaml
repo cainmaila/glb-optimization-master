@@ -44,6 +44,9 @@ importers:
       three:
         specifier: ^0.182.0
         version: 0.182.0
+      three-viewport-gizmo:
+        specifier: ^2.2.0
+        version: 2.2.0(three@0.182.0)
     devDependencies:
       '@eslint/compat':
         specifier: ^1.4.0
@@ -1540,6 +1543,11 @@ packages:
   svelte@5.46.1:
     resolution: {integrity: sha512-ynjfCHD3nP2el70kN5Pmg37sSi0EjOm9FgHYQdC4giWG/hzO3AatzXXJJgP305uIhGQxSufJLuYWtkY8uK/8RA==}
     engines: {node: '>=18'}
+
+  three-viewport-gizmo@2.2.0:
+    resolution: {integrity: sha512-Jo9Liur1rUmdKk75FZumLU/+hbF+RtJHi1qsKZpntjKlCYScK6tjbYoqvJ9M+IJphrlQJF5oReFW7Sambh0N4Q==}
+    peerDependencies:
+      three: '>=0.162.0 <1.0.0'
 
   three@0.182.0:
     resolution: {integrity: sha512-GbHabT+Irv+ihI1/f5kIIsZ+Ef9Sl5A1Y7imvS5RQjWgtTPfPnZ43JmlYI7NtCRDK9zir20lQpfg8/9Yd02OvQ==}
@@ -3077,6 +3085,10 @@ snapshots:
       locate-character: 3.0.0
       magic-string: 0.30.21
       zimmerframe: 1.1.4
+
+  three-viewport-gizmo@2.2.0(three@0.182.0):
+    dependencies:
+      three: 0.182.0
 
   three@0.182.0: {}
 
