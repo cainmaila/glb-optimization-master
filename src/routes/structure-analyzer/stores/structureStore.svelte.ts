@@ -30,6 +30,11 @@ class StructureStore {
 	viewMode = $state<ViewMode>('DEFAULT')
 	extractionData = $state<ExtractionData | null>(null)
 
+	// 複選模式狀態
+	checkedNodeIds = $state<Set<string>>(new Set())
+	isBatchMode = $state(false)
+	batchProgress = $state<{ current: number; total: number } | null>(null)
+
 	// 載入模型
 	async loadModel(file: File): Promise<void> {
 		this.isLoading = true
@@ -121,6 +126,9 @@ class StructureStore {
 		this.loadProgress = 0
 		this.viewMode = 'DEFAULT'
 		this.extractionData = null
+		this.checkedNodeIds = new Set()
+		this.isBatchMode = false
+		this.batchProgress = null
 	}
 
 	// ========== 摘取流程 ==========
@@ -275,6 +283,156 @@ class StructureStore {
 			this.isLoading = false
 		}
 	}
+
+	// ========== 批量摘取功能 ==========
+
+	/**
+	 * 切換節點勾選狀態
+	 */
+	toggleNodeCheck(nodeId: string): void {
+		if (this.checkedNodeIds.has(nodeId)) {
+			this.checkedNodeIds.delete(nodeId)
+		} else {
+			this.checkedNodeIds.add(nodeId)
+		}
+		// 觸發響應式更新
+		this.checkedNodeIds = new Set(this.checkedNodeIds)
+	}
+
+	/**
+	 * 清除所有勾選
+	 */
+	clearChecked(): void {
+		this.checkedNodeIds.clear()
+		this.checkedNodeIds = new Set()
+	}
+
+	/**
+	 * 檢查是否為批量模式（≥2 個勾選）
+	 */
+	get isBatchSelection(): boolean {
+		return this.checkedNodeIds.size >= 2
+	}
+
+	/**
+	 * 批量摘取處理
+	 */
+	async startBatchExtraction(): Promise<void> {
+		if (this.checkedNodeIds.size < 2) return
+
+		this.isBatchMode = true
+		this.batchProgress = { current: 0, total: this.checkedNodeIds.size }
+
+		const successResults: Array<{
+			nodeId: string
+			data: ExtractionData
+		}> = []
+		const failedNodes: Array<{
+			nodeId: string
+			error: string
+		}> = []
+
+		try {
+			const { prepareExtraction } = await import('$lib/utils/modelExtraction')
+
+			// 佇列處理每個節點
+			for (const nodeId of this.checkedNodeIds) {
+				try {
+					const object = this.findObjectById(nodeId)
+					if (!object) {
+						failedNodes.push({
+							nodeId,
+							error: '找不到對應物件'
+						})
+						continue
+					}
+
+					const extractionData = prepareExtraction(object)
+					successResults.push({ nodeId, data: extractionData })
+				} catch (error) {
+					failedNodes.push({
+						nodeId,
+						error: error instanceof Error ? error.message : '未知錯誤'
+					})
+				}
+
+				this.batchProgress.current++
+				this.batchProgress = { ...this.batchProgress }
+			}
+
+			// 如果有成功的結果，下載
+			if (successResults.length > 0) {
+				await this.packageBatchDownload(successResults)
+			}
+
+			// 如果有失敗的節點，顯示警告
+			if (failedNodes.length > 0) {
+				this.error = `成功：${successResults.length}，失敗：${failedNodes.length}\n失敗節點：${failedNodes.map((f) => f.nodeId).join(', ')}`
+			}
+		} catch (error) {
+			this.error = error instanceof Error ? error.message : '批量摘取失敗'
+		} finally {
+			this.clearChecked()
+			this.isBatchMode = false
+			this.batchProgress = null
+		}
+	}
+
+	/**
+	 * 打包所有模型為單一 ZIP 並下載
+	 */
+	private async packageBatchDownload(
+		results: Array<{ nodeId: string; data: ExtractionData }>
+	): Promise<void> {
+		const JSZip = (await import('jszip')).default
+		const { GLTFExporter } = await import('three/examples/jsm/exporters/GLTFExporter.js')
+		const zip = new JSZip()
+
+		// 為每個模型建立子資料夾
+		for (let i = 0; i < results.length; i++) {
+			const { data } = results[i]
+			const folderName = `${i + 1}_${sanitizeFilename(data.metadata.name)}`
+			const folder = zip.folder(folderName)
+
+			// 生成 GLB
+			const exporter = new GLTFExporter()
+			const glbBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
+				exporter.parse(
+					data.clonedNode,
+					(gltf) => resolve(gltf as ArrayBuffer),
+					(err) => reject(err),
+					{ binary: true }
+				)
+			})
+
+			folder!.file('model.glb', glbBuffer)
+			folder!.file('metadata.json', JSON.stringify(data.metadata, null, 2))
+		}
+
+		// 下載整個 ZIP
+		const content = await zip.generateAsync({ type: 'blob' })
+		const timestamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0]
+		const filename = `batch_extraction_${timestamp}.zip`
+
+		const url = URL.createObjectURL(content)
+		const a = document.createElement('a')
+		a.href = url
+		a.download = filename
+		document.body.appendChild(a)
+		a.click()
+		document.body.removeChild(a)
+		URL.revokeObjectURL(url)
+	}
+}
+
+/**
+ * 清理檔名（移除非法字元、限制長度）
+ */
+function sanitizeFilename(name: string): string {
+	return name
+		.replace(/[<>:"/\\|?*]/g, '_') // 替換非法字元
+		.replace(/\s+/g, '_') // 空白轉底線
+		.substring(0, 50) // 限制長度
 }
 
 export const structureStore = new StructureStore()

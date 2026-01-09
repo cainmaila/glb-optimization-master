@@ -30,6 +30,10 @@ export function prepareExtraction(node: THREE.Object3D): ExtractionData {
 	// 2. Clone the node to avoid modifying the scene
 	const clonedNode = node.clone(true)
 
+	// 2.5. Restore original materials (remove X-ray transparency)
+	// Note: We restore materials from the original node's userData, not the clone's
+	restoreOriginalMaterials(clonedNode, node)
+
 	// 3. Calculate Bounding Box
 	const box = new THREE.Box3().setFromObject(node)
 	const center = box.getCenter(new THREE.Vector3())
@@ -191,4 +195,78 @@ function downloadBlob(blob: Blob, filename: string) {
 	a.click()
 	document.body.removeChild(a)
 	URL.revokeObjectURL(url)
+}
+
+/**
+ * Restores original materials to the cloned node (removes X-ray transparency effect).
+ * This ensures extracted models use opaque materials instead of semi-transparent ones.
+ */
+function restoreOriginalMaterials(clonedNode: THREE.Object3D, originalNode: THREE.Object3D): void {
+	try {
+		// Create a map of original meshes by UUID for quick lookup
+		const originalMeshes = new Map<string, THREE.Mesh>()
+		originalNode.traverse((child) => {
+			if (child instanceof THREE.Mesh) {
+				originalMeshes.set(child.uuid, child)
+			}
+		})
+
+		clonedNode.traverse((child) => {
+			if (child instanceof THREE.Mesh && child.material) {
+				try {
+					// Find the corresponding original mesh
+					const originalMesh = originalMeshes.get(child.uuid)
+
+					// Handle array of materials
+					if (Array.isArray(child.material)) {
+						const materials = child.material
+						child.material = materials.map((mat, index) => {
+							try {
+								// If original mesh has originalMaterial in userData, use it
+								if (
+									originalMesh?.userData.originalMaterial &&
+									Array.isArray(originalMesh.userData.originalMaterial) &&
+									typeof originalMesh.userData.originalMaterial[index]?.clone === 'function'
+								) {
+									return originalMesh.userData.originalMaterial[index].clone()
+								}
+								// Otherwise, ensure material is opaque
+								if (mat.transparent && mat.opacity < 1) {
+									const restoredMaterial = mat.clone()
+									restoredMaterial.transparent = false
+									restoredMaterial.opacity = 1
+									return restoredMaterial
+								}
+								return mat
+							} catch (e) {
+								console.warn('Failed to restore material in array:', e)
+								return mat
+							}
+						})
+					} else {
+						// Handle single material
+						const material = child.material as THREE.Material
+						// If original mesh has originalMaterial in userData, use it
+						if (
+							originalMesh?.userData.originalMaterial &&
+							!Array.isArray(originalMesh.userData.originalMaterial) &&
+							typeof originalMesh.userData.originalMaterial.clone === 'function'
+						) {
+							child.material = originalMesh.userData.originalMaterial.clone()
+						} else if (material.transparent && material.opacity < 1) {
+							// Otherwise, ensure material is opaque
+							const restoredMaterial = material.clone()
+							restoredMaterial.transparent = false
+							restoredMaterial.opacity = 1
+							child.material = restoredMaterial
+						}
+					}
+				} catch (e) {
+					console.warn('Failed to restore material for mesh:', child.name, e)
+				}
+			}
+		})
+	} catch (e) {
+		console.error('Failed to restore original materials:', e)
+	}
 }

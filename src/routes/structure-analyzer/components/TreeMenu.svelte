@@ -5,6 +5,8 @@
 
 	const treeData = $derived(structureStore.treeData)
 	const hasModel = $derived(!!structureStore.model)
+	const checkedCount = $derived(structureStore.checkedNodeIds.size)
+	const isBatchSelection = $derived(structureStore.isBatchSelection)
 
 	function handleSelect(id: string) {
 		// 如果點擊已選取的節點，則取消選取
@@ -25,6 +27,14 @@
 			structureStore.importStructure(input.files[0])
 			// 清空 input 讓相同檔案可以再次觸發
 			input.value = ''
+		}
+	}
+
+	function handleExtraction() {
+		if (isBatchSelection) {
+			structureStore.startBatchExtraction()
+		} else {
+			structureStore.startExtraction() // 單選流程
 		}
 	}
 </script>
@@ -77,18 +87,27 @@
 			<!-- 摘取按鈕 -->
 			<button
 				class="extract-btn"
-				onclick={() => structureStore.startExtraction()}
-				title="摘取並烘焙選取節點"
-				disabled={!structureStore.selectedNodeId}
+				onclick={handleExtraction}
+				title={isBatchSelection
+					? `批量摘取 ${checkedCount} 個節點`
+					: '摘取並烘焙選取節點'}
+				disabled={isBatchSelection ? checkedCount < 2 : !structureStore.selectedNodeId}
 			>
 				<FileBox size={16} />
-				<span>摘取</span>
+				<span>{isBatchSelection ? `摘取 (${checkedCount})` : '摘取'}</span>
 			</button>
 
 			<!-- 清除選取按鈕 -->
 			{#if structureStore.selectedNodeId}
 				<button class="clear-btn" onclick={() => structureStore.clearSelection()}>
 					清除選取
+				</button>
+			{/if}
+
+			<!-- 清除勾選按鈕 -->
+			{#if checkedCount > 0}
+				<button class="clear-btn" onclick={() => structureStore.clearChecked()}>
+					清除勾選
 				</button>
 			{/if}
 		</div>

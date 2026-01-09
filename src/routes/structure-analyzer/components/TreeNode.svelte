@@ -23,6 +23,7 @@
 
 	const selectedNodeId = $derived(structureStore.selectedNodeId)
 	const isSelected = $derived(selectedNodeId === node.id)
+	const isChecked = $derived(structureStore.checkedNodeIds.has(node.id))
 
 	function handleClick(e: MouseEvent) {
 		e.stopPropagation()
@@ -40,18 +41,29 @@
 		e.stopPropagation()
 		isExpanded = !isExpanded
 	}
+
+	function handleCheckboxClick(e: Event) {
+		e.stopPropagation() // 防止觸發節點選取
+		structureStore.toggleNodeCheck(node.id)
+	}
 </script>
 
 <li class="tree-node">
 	<div
 		class="node-content"
 		class:selected={isSelected}
+		class:checked={isChecked}
 		style="padding-left: {level * 1.5}rem"
 		role="button"
 		tabindex="0"
 		onclick={handleClick}
 		onkeydown={handleKeydown}
 	>
+		<!-- 複選框 -->
+		<label class="checkbox-wrapper">
+			<input type="checkbox" checked={isChecked} onchange={handleCheckboxClick} />
+		</label>
+
 		<!-- 展開/收合按鈕 -->
 		{#if node.children.length > 0}
 			<button class="expand-btn" class:expanded={isExpanded} onclick={toggleExpand}>
@@ -109,6 +121,25 @@
 	.node-content.selected {
 		background: rgba(102, 126, 234, 0.3);
 		border-left: 3px solid #667eea;
+	}
+
+	.node-content.checked {
+		background: rgba(102, 126, 234, 0.15);
+		border-left: 3px solid rgba(102, 126, 234, 0.5);
+	}
+
+	.checkbox-wrapper {
+		display: flex;
+		align-items: center;
+		cursor: pointer;
+		margin-right: 0.25rem;
+	}
+
+	.checkbox-wrapper input[type='checkbox'] {
+		width: 16px;
+		height: 16px;
+		cursor: pointer;
+		accent-color: #667eea;
 	}
 
 	.expand-btn {

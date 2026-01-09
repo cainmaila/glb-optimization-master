@@ -6,10 +6,12 @@
 	import ExtractionMenu from './components/ExtractionMenu.svelte'
 	import LocationPreview from './components/LocationPreview.svelte'
 	import OrientationAdjuster from './components/OrientationAdjuster.svelte'
+	import BatchProgressOverlay from './components/BatchProgressOverlay.svelte'
 	import { structureStore } from './stores/structureStore.svelte'
 
 	const hasModel = $derived(!!structureStore.model)
 	const viewMode = $derived(structureStore.viewMode)
+	const isBatchMode = $derived(structureStore.isBatchMode)
 </script>
 
 <div class="page-container">
@@ -37,7 +39,9 @@
 </div>
 
 <!-- 摘取流程 overlays -->
-{#if viewMode === 'EXTRACTION_MENU'}
+{#if isBatchMode}
+	<BatchProgressOverlay />
+{:else if viewMode === 'EXTRACTION_MENU'}
 	<ExtractionMenu />
 {:else if viewMode === 'PREVIEW_LOCATION'}
 	<LocationPreview />
