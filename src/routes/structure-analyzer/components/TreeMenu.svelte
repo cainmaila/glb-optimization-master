@@ -166,11 +166,14 @@
 		flex-wrap: wrap;
 	}
 
-	.import-btn {
+	/* Base button styles */
+	.import-btn,
+	.export-btn,
+	.extract-btn,
+	.save-btn,
+	.clear-btn {
 		padding: 0.4rem 0.8rem;
 		font-size: 0.85rem;
-		background: rgba(102, 126, 234, 0.2);
-		border: 1px solid rgba(102, 126, 234, 0.4);
 		border-radius: 4px;
 		color: rgba(255, 255, 255, 0.9);
 		cursor: pointer;
@@ -181,54 +184,30 @@
 		white-space: nowrap;
 	}
 
-	.import-btn:hover:not(:disabled) {
-		background: rgba(102, 126, 234, 0.3);
-		border-color: rgba(102, 126, 234, 0.6);
-	}
-
-	.import-btn:disabled {
+	.import-btn:disabled,
+	.export-btn:disabled,
+	.extract-btn:disabled,
+	.save-btn:disabled {
 		opacity: 0.5;
 		cursor: not-allowed;
 	}
 
+	/* Color variants */
+	.import-btn,
 	.export-btn {
-		padding: 0.4rem 0.8rem;
-		font-size: 0.85rem;
 		background: rgba(102, 126, 234, 0.2);
 		border: 1px solid rgba(102, 126, 234, 0.4);
-		border-radius: 4px;
-		color: rgba(255, 255, 255, 0.9);
-		cursor: pointer;
-		transition: all 0.2s;
-		display: flex;
-		align-items: center;
-		gap: 0.4rem;
-		white-space: nowrap;
 	}
 
+	.import-btn:hover:not(:disabled),
 	.export-btn:hover:not(:disabled) {
 		background: rgba(102, 126, 234, 0.3);
 		border-color: rgba(102, 126, 234, 0.6);
 	}
 
-	.export-btn:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
-	}
-
 	.extract-btn {
-		padding: 0.4rem 0.8rem;
-		font-size: 0.85rem;
 		background: rgba(234, 187, 102, 0.2);
 		border: 1px solid rgba(234, 187, 102, 0.4);
-		border-radius: 4px;
-		color: rgba(255, 255, 255, 0.9);
-		cursor: pointer;
-		transition: all 0.2s;
-		display: flex;
-		align-items: center;
-		gap: 0.4rem;
-		white-space: nowrap;
 	}
 
 	.extract-btn:hover:not(:disabled) {
@@ -236,40 +215,9 @@
 		border-color: rgba(234, 187, 102, 0.6);
 	}
 
-	.extract-btn:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
-	}
-
-	.clear-btn {
-		padding: 0.4rem 0.8rem;
-		font-size: 0.85rem;
-		background: rgba(255, 255, 255, 0.1);
-		border: 1px solid rgba(255, 255, 255, 0.2);
-		border-radius: 4px;
-		color: rgba(255, 255, 255, 0.9);
-		cursor: pointer;
-		transition: background 0.2s;
-		white-space: nowrap;
-	}
-
-	.clear-btn:hover {
-		background: rgba(255, 255, 255, 0.15);
-	}
-
 	.save-btn {
-		padding: 0.4rem 0.8rem;
-		font-size: 0.85rem;
 		background: rgba(16, 185, 129, 0.2);
 		border: 1px solid rgba(16, 185, 129, 0.4);
-		border-radius: 4px;
-		color: rgba(255, 255, 255, 0.9);
-		cursor: pointer;
-		transition: all 0.2s;
-		display: flex;
-		align-items: center;
-		gap: 0.4rem;
-		white-space: nowrap;
 	}
 
 	.save-btn:hover:not(:disabled) {
@@ -277,9 +225,9 @@
 		border-color: rgba(16, 185, 129, 0.6);
 	}
 
-	.save-btn:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
+	.clear-btn {
+		background: rgba(255, 255, 255, 0.1);
+		border: 1px solid rgba(255, 255, 255, 0.2);
 	}
 
 	.clear-btn:hover {
