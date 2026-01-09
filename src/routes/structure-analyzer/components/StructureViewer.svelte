@@ -244,11 +244,13 @@
 	<canvas bind:this={canvasRef}></canvas>
 </div>
 
-<style>
+<style lang="postcss">
 	.viewer-container {
 		width: 100%;
 		height: 100%;
-		position: relative;
+		position: absolute;
+		top: 0;
+		left: 0;
 	}
 
 	canvas {
