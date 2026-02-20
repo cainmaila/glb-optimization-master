@@ -38,9 +38,10 @@
     const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
     scene.add(light);
 
-    // Setup DRACO loader for compressed geometry
+    // Setup DRACO loader for compressed geometry – use locally bundled decoder
+    // so the app works offline (no dependency on the gstatic CDN).
     const dracoLoader = new DRACOLoader();
-    dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
+    dracoLoader.setDecoderPath('/draco/');
     
     // Setup GLTF loader with DRACO support
     gltfLoader = new GLTFLoader();

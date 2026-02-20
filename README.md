@@ -62,6 +62,7 @@
 
 本專案採用現代化的 Web 技術棧構建：
 
+- **Desktop Shell**: [Tauri v2](https://tauri.app/) (跨平台桌面應用框架，支援 Mac / Windows / Linux)
 - **Frontend Framework**: [SvelteKit](https://kit.svelte.dev/) (高效能、輕量級的前端框架)
 - **3D Engine**: [Three.js](https://threejs.org/) (用於模型渲染與預覽)
 - **Optimization Core**: [glTF-Transform](https://gltf-transform.dev/) (底層優化邏輯，運行於 Node.js 後端)
@@ -69,6 +70,66 @@
 - **Compression**: [Draco](https://google.github.io/draco/), [Meshoptimizer](https://github.com/zeux/meshoptimizer)
 - **Style**: Standard CSS (Dark Mode Design)
 - **Package Manager**: pnpm
+
+## 🚀 本機執行 (Running Locally as a Desktop App)
+
+### 前置需求 (Prerequisites)
+
+| 工具 | 版本 | 安裝方式 |
+|------|------|----------|
+| [Node.js](https://nodejs.org/) | ≥ 18 | `brew install node` |
+| [Rust](https://www.rust-lang.org/) | stable | `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh` |
+| pnpm | ≥ 8 | `npm install -g pnpm` |
+
+> **macOS only**: Xcode Command Line Tools are also required (`xcode-select --install`).
+
+### 安裝依賴 (Install Dependencies)
+
+```bash
+pnpm install
+```
+
+### 開發模式 (Development Mode)
+
+在開發模式下，Tauri 會同時啟動 Vite 開發伺服器和原生桌面視窗：
+
+```bash
+pnpm tauri:dev
+```
+
+### 生產構建 (Production Build)
+
+構建適用於 macOS 的原生應用程式 (.app / .dmg)：
+
+```bash
+pnpm tauri:build
+```
+
+構建產物位於 `src-tauri/target/release/bundle/`。
+
+### 架構說明 (Architecture)
+
+```
+┌──────────────────────────────────────────┐
+│  Tauri Desktop Window (WKWebView on Mac) │
+│  ┌────────────────────────────────────┐  │
+│  │  SvelteKit (adapter-static)        │  │
+│  │  • Upload.svelte  ──→ OS 檔案選擇器 │  │
+│  │  • Preview.svelte ──→ Three.js     │  │
+│  │  • DownloadButton ──→ invoke(…)    │  │
+│  └────────────────┬───────────────────┘  │
+│                   │ Tauri IPC            │
+│  ┌────────────────▼───────────────────┐  │
+│  │  Rust Backend (tauri::command)     │  │
+│  │  optimize_glb(inputPath, config)   │  │
+│  │      │                            │  │
+│  │      └──→ node sidecar/optimize-glb.js │
+│  └────────────────────────────────────┘  │
+└──────────────────────────────────────────┘
+```
+
+最佳化邏輯由 `src-tauri/sidecar/optimize-glb.js` 承載——這是原有
+`/api/optimize` 伺服器端路由的直接移植，透過 Rust 以子行程方式執行。
 
 ## 📦 使用說明與參數詳解 (Usage & Settings)
 

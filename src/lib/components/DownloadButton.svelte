@@ -1,66 +1,59 @@
 <script lang="ts">
-  import { selectedFile, optimizedUrl } from '$lib/stores';
+  import { selectedFilePath, optimizedUrl, optimizedFilePath } from '$lib/stores';
   import { settings } from '$lib/settings';
   import ComparisonReport from './ComparisonReport.svelte';
+  import { invoke } from '@tauri-apps/api/core';
+  import { convertFileSrc } from '@tauri-apps/api/core';
+  import { save } from '@tauri-apps/plugin-dialog';
+  import { copyFile } from '@tauri-apps/plugin-fs';
 
   let isProcessing = false;
   let progress = '';
   let reports: { original: any; optimized: any } | null = null;
 
   async function handleOptimize() {
-    if (!$selectedFile) return;
+    if (!$selectedFilePath) return;
 
     isProcessing = true;
-    progress = 'Uploading & Optimizing...';
-    reports = null; // Reset reports
+    progress = 'Optimizing…';
+    reports = null;
 
     try {
-      const formData = new FormData();
-      formData.append('file', $selectedFile);
-      formData.append('config', JSON.stringify($settings));
-
-      const response = await fetch('/api/optimize', {
-        method: 'POST',
-        body: formData
+      // Invoke the Rust command which calls the Node.js sidecar
+      const resultJson = await invoke<string>('optimize_glb', {
+        inputPath: $selectedFilePath,
+        config: JSON.stringify($settings),
       });
 
-      if (!response.ok) {
-        throw new Error('Optimization failed');
-      }
+      const { outputPath, originalReport, optimizedReport } = JSON.parse(resultJson);
 
-      // Handle JSON response with comparison data
-      const data = await response.json();
-      const { file, originalReport, optimizedReport } = data;
+      // Convert the native output path to an asset URL for the WebView preview
+      const assetUrl = convertFileSrc(outputPath);
+      optimizedUrl.set(assetUrl);
+      optimizedFilePath.set(outputPath);
 
-      // Decode Base64 to Blob
-      const byteCharacters = atob(file);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: 'model/gltf-binary' });
-
-      const url = URL.createObjectURL(blob);
-      optimizedUrl.set(url);
       reports = { original: originalReport, optimized: optimizedReport };
       progress = 'Done!';
     } catch (error) {
       console.error(error);
-      progress = 'Error occurred';
+      progress = `Error: ${error}`;
     } finally {
       isProcessing = false;
     }
   }
 
-  function handleDownload() {
-    if (!$optimizedUrl) return;
-    const a = document.createElement('a');
-    a.href = $optimizedUrl;
-    a.download = 'optimized_model.glb';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+  async function handleDownload() {
+    if (!$optimizedFilePath) return;
+
+    const destPath = await save({
+      title: '儲存優化後的 GLB',
+      filters: [{ name: 'GLB File', extensions: ['glb'] }],
+      defaultPath: 'optimized_model.glb',
+    });
+
+    if (destPath) {
+      await copyFile($optimizedFilePath, destPath);
+    }
   }
 </script>
 
@@ -133,7 +126,7 @@
       on:click={handleOptimize} 
       disabled={isProcessing}
     >
-      {isProcessing ? 'Processing... (High CPU)' : 'Optimize & Download'}
+      {isProcessing ? 'Processing… (High CPU)' : 'Optimize & Download'}
     </button>
   </div>
 
@@ -148,7 +141,7 @@
   {#if $optimizedUrl}
     <div class="controls download-section">
       <button class="btn-download" on:click={handleDownload}>
-        Download .GLB
+        另存 .GLB 檔案…
       </button>
     </div>
   {/if}
