@@ -28,6 +28,7 @@ fn optimize_glb(
     // we catch obvious issues early here to give a cleaner error message).
     serde_json::from_str::<serde_json::Value>(&config)
         .map_err(|e| format!("Invalid config JSON: {e}"))?;
+
     // Locate the bundled sidecar script
     let resource_dir = app
         .path()
